@@ -29,12 +29,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 class MessagesToUsageWriterAcceptanceTest {
     private static final NdjsonToMessageIterable.Deserializer deserializer = (json) -> OBJECT_MAPPER.readValue(json, Envelope.class);
     private static final MessagesToUsageWriter.Serializer jsonSerializer = OBJECT_MAPPER.writer(PRETTY_PRINTER)::writeValue;
-    private static final MessagesToUsageWriter.Serializer plainTextSerializer = new PlainTextSerializer();
 
     static List<TestCase> acceptance() throws IOException {
         Map<String, Builder> formats = new LinkedHashMap<>();
         formats.put("json", builder(jsonSerializer));
-        formats.put("plain.txt", builder(plainTextSerializer));
+        formats.put("step-definitions.txt", builder(UsageReportPlainTextSerializer.builder().build()));
+        formats.put("with-steps.txt", builder(UsageReportPlainTextSerializer.builder()
+                .feature(UsageReportPlainTextSerializer.PlainTextFeature.INCLUDE_STEPS, true)
+                .maxStepsPerStepDefinition(5)
+                .build()));
         ;
 
         List<Path> sources = getSources();
@@ -56,7 +59,7 @@ class MessagesToUsageWriterAcceptanceTest {
 
     }
 
-    private static <T extends OutputStream> T writePrettyReport(TestCase testCase, T out, Builder builder) throws IOException {
+    private static <T extends OutputStream> T writeUsageReport(TestCase testCase, T out, Builder builder) throws IOException {
         try (InputStream in = Files.newInputStream(testCase.source)) {
             try (NdjsonToMessageIterable envelopes = new NdjsonToMessageIterable(in, deserializer)) {
                 try (MessagesToUsageWriter writer = builder.build(out)) {
@@ -72,7 +75,7 @@ class MessagesToUsageWriterAcceptanceTest {
     @ParameterizedTest
     @MethodSource("acceptance")
     void test(TestCase testCase) throws IOException {
-        ByteArrayOutputStream bytes = writePrettyReport(testCase, new ByteArrayOutputStream(), testCase.builder);
+        ByteArrayOutputStream bytes = writeUsageReport(testCase, new ByteArrayOutputStream(), testCase.builder);
         assertThat(bytes.toString()).isEqualToIgnoringNewLines(new String(readAllBytes(testCase.expected)));
     }
 
@@ -81,7 +84,7 @@ class MessagesToUsageWriterAcceptanceTest {
     @Disabled
     void updateExpectedFiles(TestCase testCase) throws IOException {
         try (OutputStream out = Files.newOutputStream(testCase.expected)) {
-            writePrettyReport(testCase, out, testCase.builder);
+            writeUsageReport(testCase, out, testCase.builder);
             if (!testCase.format.equals("json")) {
                 // Render output in console, easier to inspect results
                 Files.copy(testCase.expected, System.out);

@@ -7,6 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Java implementation ([#1](https://github.com/cucumber/pretty-formatter/pull/1) M.P. Korstanje)
+- Java implementation ([#1](https://github.com/cucumber/usage-formatter/pull/1) M.P. Korstanje)
 
-[Unreleased]: https://github.com/cucumber/pretty-formatter/compare/f21831df98c5e57a53950a92b068df8321e45bce...HEAD
+[Unreleased]: https://github.com/cucumber/usage-formatter/compare/f21831df98c5e57a53950a92b068df8321e45bce...HEAD

@@ -16,7 +16,7 @@ import static io.cucumber.query.Repository.RepositoryFeature.INCLUDE_STEP_DEFINI
 import static java.util.Objects.requireNonNull;
 
 /**
- * Creates a usage report for step definitions based on a test run.
+ * Writes usage statistics for step definitions.
  * <p>
  * Note: Messages are first collected and only written once the stream is
  * closed.

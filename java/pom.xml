@@ -8,7 +8,7 @@
         <version>4.4.0</version>
     </parent>
 
-    <artifactId>pretty-formatter</artifactId>
+    <artifactId>usage-formatter</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Usage Formatter</name>
