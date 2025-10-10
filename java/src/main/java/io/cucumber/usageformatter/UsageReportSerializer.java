@@ -2,6 +2,7 @@ package io.cucumber.usageformatter;
 
 import io.cucumber.usageformatter.UsageReport.Statistics;
 import io.cucumber.usageformatter.UsageReport.StepDefinitionUsage;
+import io.cucumber.usageformatter.UsageReport.StepUsage;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -14,6 +15,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 
 import static io.cucumber.usageformatter.Durations.toBigDecimalSeconds;
+import static io.cucumber.usageformatter.UsageReportSerializer.PlainTextFeature.INCLUDE_STEPS;
 import static java.lang.System.lineSeparator;
 import static java.math.RoundingMode.HALF_EVEN;
 import static java.util.Comparator.comparing;
@@ -21,6 +23,7 @@ import static java.util.Comparator.nullsFirst;
 
 public final class UsageReportSerializer implements MessagesToUsageWriter.Serializer {
 
+    private static final int INCLUDE_ALL_STEPS = -1;
     public final String[] headers = new String[]{"Expression/Text", "Duration", "Mean", "±", "Error", "Location"};
     public final boolean[] leftAlignHeader = {true, false, false, true, false, true};
     public final int maxStepsPerStepDefinition;
@@ -55,56 +58,69 @@ public final class UsageReportSerializer implements MessagesToUsageWriter.Serial
         stepDefinitions
                 .stream()
                 .sorted(byMeanDurationDescending())
-                .forEach(stepDefinitionUsage -> {
-                    Statistics duration = stepDefinitionUsage.getDuration();
-                    table.add(new String[]{
-                            stepDefinitionUsage.getExpression(),
-                            duration == null ? "" : formatDuration(duration.getSum()),
-                            duration == null ? "" : formatDuration(duration.getMean()),
-                            duration == null ? "" : "±",
-                            duration == null ? "" : formatDuration(duration.getMoe95()),
-                            stepDefinitionUsage.getLocation()
-                    });
+                .map(this::createRows)
+                .forEach(table::addAll);
 
-                    if (features.contains(PlainTextFeature.INCLUDE_STEPS)) {
-
-                        if (stepDefinitionUsage.getSteps().isEmpty()) {
-                            table.add(new String[]{
-                                    "  UNUSED",
-                                    "",
-                                    "",
-                                    "",
-                                    "",
-                                    ""
-                            });
-                        } else {
-                            stepDefinitionUsage.getSteps().stream()
-                                    .sorted(comparing(UsageReport.StepUsage::getDuration).reversed())
-                                    .limit(maxStepsPerStepDefinition)
-                                    .forEach(stepUsage ->
-                                            table.add(new String[]{
-                                                    "  " + stepUsage.getText(),
-                                                    formatDuration(stepUsage.getDuration()),
-                                                    "",
-                                                    "",
-                                                    "",
-                                                    stepUsage.getLocation()
-                                            }));
-                            if (stepDefinitionUsage.getSteps().size() > maxStepsPerStepDefinition) {
-                                table.add(new String[]{
-                                        "  " + (stepDefinitionUsage.getSteps().size() - maxStepsPerStepDefinition) + " more",
-                                        "",
-                                        "",
-                                        "",
-                                        "",
-                                        ""
-                                });
-                            }
-                        }
-                    }
-
-                });
         return table;
+    }
+
+    private List<String[]> createRows(StepDefinitionUsage stepDefinitionUsage) {
+        List<String[]> rows = new ArrayList<>();
+        Statistics duration = stepDefinitionUsage.getDuration();
+
+        // Add step definition row
+        rows.add(new String[]{
+                stepDefinitionUsage.getExpression(),
+                duration == null ? "" : formatDuration(duration.getSum()),
+                duration == null ? "" : formatDuration(duration.getMean()),
+                duration == null ? "" : "±",
+                duration == null ? "" : formatDuration(duration.getMoe95()),
+                stepDefinitionUsage.getLocation()
+        });
+
+        if (!features.contains(INCLUDE_STEPS)) {
+            return rows;
+        }
+
+        // Add rows for steps, if any
+        List<StepUsage> steps = stepDefinitionUsage.getSteps();
+        if (steps.isEmpty()) {
+            rows.add(new String[]{
+                    "  UNUSED",
+                    "",
+                    "",
+                    "",
+                    "",
+                    ""
+            });
+            return rows;
+        }
+
+        steps.sort(comparing(StepUsage::getDuration).reversed());
+        boolean includeAllSteps = maxStepsPerStepDefinition == INCLUDE_ALL_STEPS;
+        int includeToIndex = includeAllSteps ? steps.size() : Math.min(maxStepsPerStepDefinition, steps.size());
+        for (StepUsage stepUsage : steps.subList(0, includeToIndex)) {
+            rows.add(new String[]{
+                    "  " + stepUsage.getText(),
+                    formatDuration(stepUsage.getDuration()),
+                    "",
+                    "",
+                    "",
+                    stepUsage.getLocation()
+            });
+        }
+        if (steps.size() > includeToIndex) {
+            rows.add(new String[]{
+                    "  " + (steps.size() - includeToIndex) + " more",
+                    "",
+                    "",
+                    "",
+                    "",
+                    ""
+            });
+        }
+        
+        return rows;
     }
 
     private String formatTable(List<String[]> table) {
@@ -167,7 +183,7 @@ public final class UsageReportSerializer implements MessagesToUsageWriter.Serial
 
     public static final class Builder {
         private final Set<PlainTextFeature> features = EnumSet.noneOf(PlainTextFeature.class);
-        private int maxStepsPerStepDefinition = 0;
+        private int maxStepsPerStepDefinition = INCLUDE_ALL_STEPS;
 
         /**
          * Toggles a given feature.
@@ -187,7 +203,7 @@ public final class UsageReportSerializer implements MessagesToUsageWriter.Serial
          * A negative value means all steps are included.
          */
         public Builder maxStepsPerStepDefinition(int n) {
-            this.maxStepsPerStepDefinition = n < 0 ? Integer.MAX_VALUE : n;
+            this.maxStepsPerStepDefinition = n < 0 ? INCLUDE_ALL_STEPS : n;
             return this;
         }
 
