@@ -1,0 +1,140 @@
+{
+  "stepDefinitions": [
+    {
+      "sourceReference": {
+        "uri": "samples/multiple-features/multiple-features.ts",
+        "location": {
+          "line": 3
+        }
+      },
+      "duration": {
+        "sum": {
+          "seconds": 0,
+          "nanos": 9000000
+        },
+        "mean": {
+          "seconds": 0,
+          "nanos": 1000000
+        },
+        "moe95": {
+          "seconds": 0,
+          "nanos": 0
+        }
+      },
+      "matches": [
+        {
+          "text": "an order for \"eggs\"",
+          "duration": {
+            "seconds": 0,
+            "nanos": 1000000
+          },
+          "uri": "samples/multiple-features/multiple-features-1.feature",
+          "location": {
+            "line": 3,
+            "column": 3
+          }
+        },
+        {
+          "text": "an order for \"milk\"",
+          "duration": {
+            "seconds": 0,
+            "nanos": 1000000
+          },
+          "uri": "samples/multiple-features/multiple-features-1.feature",
+          "location": {
+            "line": 6,
+            "column": 3
+          }
+        },
+        {
+          "text": "an order for \"bread\"",
+          "duration": {
+            "seconds": 0,
+            "nanos": 1000000
+          },
+          "uri": "samples/multiple-features/multiple-features-1.feature",
+          "location": {
+            "line": 9,
+            "column": 3
+          }
+        },
+        {
+          "text": "an order for \"batteries\"",
+          "duration": {
+            "seconds": 0,
+            "nanos": 1000000
+          },
+          "uri": "samples/multiple-features/multiple-features-2.feature",
+          "location": {
+            "line": 3,
+            "column": 3
+          }
+        },
+        {
+          "text": "an order for \"light bulbs\"",
+          "duration": {
+            "seconds": 0,
+            "nanos": 1000000
+          },
+          "uri": "samples/multiple-features/multiple-features-2.feature",
+          "location": {
+            "line": 6,
+            "column": 3
+          }
+        },
+        {
+          "text": "an order for \"fuses\"",
+          "duration": {
+            "seconds": 0,
+            "nanos": 1000000
+          },
+          "uri": "samples/multiple-features/multiple-features-2.feature",
+          "location": {
+            "line": 9,
+            "column": 3
+          }
+        },
+        {
+          "text": "an order for \"pencils\"",
+          "duration": {
+            "seconds": 0,
+            "nanos": 1000000
+          },
+          "uri": "samples/multiple-features/multiple-features-3.feature",
+          "location": {
+            "line": 3,
+            "column": 3
+          }
+        },
+        {
+          "text": "an order for \"rulers\"",
+          "duration": {
+            "seconds": 0,
+            "nanos": 1000000
+          },
+          "uri": "samples/multiple-features/multiple-features-3.feature",
+          "location": {
+            "line": 6,
+            "column": 3
+          }
+        },
+        {
+          "text": "an order for \"paperclips\"",
+          "duration": {
+            "seconds": 0,
+            "nanos": 1000000
+          },
+          "uri": "samples/multiple-features/multiple-features-3.feature",
+          "location": {
+            "line": 9,
+            "column": 3
+          }
+        }
+      ],
+      "expression": {
+        "source": "an order for {string}",
+        "type": "CUCUMBER_EXPRESSION"
+      }
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "stepDefinitions": [
+    {
+      "sourceReference": {
+        "uri": "samples/minimal/minimal.ts",
+        "location": {
+          "line": 3
+        }
+      },
+      "duration": {
+        "sum": {
+          "seconds": 0,
+          "nanos": 1000000
+        },
+        "mean": {
+          "seconds": 0,
+          "nanos": 1000000
+        },
+        "moe95": {
+          "seconds": 0,
+          "nanos": 0
+        }
+      },
+      "matches": [
+        {
+          "text": "I have 42 cukes in my belly",
+          "duration": {
+            "seconds": 0,
+            "nanos": 1000000
+          },
+          "uri": "samples/minimal/minimal.feature",
+          "location": {
+            "line": 9,
+            "column": 3
+          }
+        }
+      ],
+      "expression": {
+        "source": "I have {int} cukes in my belly",
+        "type": "CUCUMBER_EXPRESSION"
+      }
+    }
+  ]
+}

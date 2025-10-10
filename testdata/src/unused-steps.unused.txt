@@ -1,0 +1,5 @@
+
+1 unused step definition(s)
+
+Location                               Expression               
+samples/unused-steps/unused-steps.ts:7 # a step that is not used

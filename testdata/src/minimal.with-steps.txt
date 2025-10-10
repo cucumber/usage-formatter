@@ -1,0 +1,4 @@
+
+Expression/Text                Duration   Mean ±  Error Location                         
+I have {int} cukes in my belly   0.001s 0.001s ± 0.000s samples/minimal/minimal.ts:3     
+  I have 42 cukes in my belly    0.001s                 samples/minimal/minimal.feature:9

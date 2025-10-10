@@ -1,0 +1,57 @@
+{
+  "stepDefinitions": [
+    {
+      "sourceReference": {
+        "uri": "samples/unused-steps/unused-steps.ts",
+        "location": {
+          "line": 3
+        }
+      },
+      "duration": {
+        "sum": {
+          "seconds": 0,
+          "nanos": 1000000
+        },
+        "mean": {
+          "seconds": 0,
+          "nanos": 1000000
+        },
+        "moe95": {
+          "seconds": 0,
+          "nanos": 0
+        }
+      },
+      "matches": [
+        {
+          "text": "a step that is used",
+          "duration": {
+            "seconds": 0,
+            "nanos": 1000000
+          },
+          "uri": "samples/unused-steps/unused-steps.feature",
+          "location": {
+            "line": 5,
+            "column": 3
+          }
+        }
+      ],
+      "expression": {
+        "source": "a step that is used",
+        "type": "CUCUMBER_EXPRESSION"
+      }
+    },
+    {
+      "sourceReference": {
+        "uri": "samples/unused-steps/unused-steps.ts",
+        "location": {
+          "line": 7
+        }
+      },
+      "matches": [ ],
+      "expression": {
+        "source": "a step that is not used",
+        "type": "CUCUMBER_EXPRESSION"
+      }
+    }
+  ]
+}

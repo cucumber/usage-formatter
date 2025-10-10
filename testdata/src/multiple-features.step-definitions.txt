@@ -1,0 +1,3 @@
+
+Expression/Text       Duration   Mean ±  Error Location                                        
+an order for {string}   0.009s 0.001s ± 0.000s samples/multiple-features/multiple-features.ts:3
