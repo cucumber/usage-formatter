@@ -62,6 +62,6 @@ class MessagesToUsageWriterTest {
     }
 
     private static MessagesToUsageWriter create(ByteArrayOutputStream bytes) {
-        return MessagesToUsageWriter.builder(UsageReportPlainTextSerializer.builder().build()).build(bytes);
+        return MessagesToUsageWriter.builder(UsageReportSerializer.builder().build()).build(bytes);
     }
 }

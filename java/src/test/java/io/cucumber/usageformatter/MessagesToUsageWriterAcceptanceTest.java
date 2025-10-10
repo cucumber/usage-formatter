@@ -30,15 +30,15 @@ class MessagesToUsageWriterAcceptanceTest {
     private static final NdjsonToMessageIterable.Deserializer deserializer = (json) -> OBJECT_MAPPER.readValue(json, Envelope.class);
     private static final MessagesToUsageWriter.Serializer jsonSerializer = OBJECT_MAPPER.writer(PRETTY_PRINTER)::writeValue;
 
-    static List<TestCase> acceptance() throws IOException {
+    static List<TestCase> acceptance() {
         Map<String, Builder> formats = new LinkedHashMap<>();
         formats.put("json", builder(jsonSerializer));
-        formats.put("step-definitions.txt", builder(UsageReportPlainTextSerializer.builder().build()));
-        formats.put("with-steps.txt", builder(UsageReportPlainTextSerializer.builder()
-                .feature(UsageReportPlainTextSerializer.PlainTextFeature.INCLUDE_STEPS, true)
+        formats.put("unused.txt", builder(new UnusedReportSerializer()));
+        formats.put("step-definitions.txt", builder(UsageReportSerializer.builder().build()));
+        formats.put("with-steps.txt", builder(UsageReportSerializer.builder()
+                .feature(UsageReportSerializer.PlainTextFeature.INCLUDE_STEPS, true)
                 .maxStepsPerStepDefinition(5)
                 .build()));
-        ;
 
         List<Path> sources = getSources();
 
@@ -56,7 +56,6 @@ class MessagesToUsageWriterAcceptanceTest {
                 Paths.get("../testdata/src/unused-steps.ndjson"),
                 Paths.get("../testdata/src/multiple-features.ndjson")
         );
-
     }
 
     private static <T extends OutputStream> T writeUsageReport(TestCase testCase, T out, Builder builder) throws IOException {

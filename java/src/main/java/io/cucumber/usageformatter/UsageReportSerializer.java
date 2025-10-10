@@ -19,14 +19,14 @@ import static java.math.RoundingMode.HALF_EVEN;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.nullsFirst;
 
-public final class UsageReportPlainTextSerializer implements MessagesToUsageWriter.Serializer {
+public final class UsageReportSerializer implements MessagesToUsageWriter.Serializer {
 
     public final String[] headers = new String[]{"Expression/Text", "Duration", "Mean", "±", "Error", "Location"};
     public final boolean[] leftAlignHeader = {true, false, false, true, false, true};
     public final int maxStepsPerStepDefinition;
     private final Set<PlainTextFeature> features;
 
-    private UsageReportPlainTextSerializer(int maxStepsPerStepDefinition, Set<PlainTextFeature> features) {
+    private UsageReportSerializer(int maxStepsPerStepDefinition, Set<PlainTextFeature> features) {
         this.maxStepsPerStepDefinition = maxStepsPerStepDefinition;
         this.features = features;
     }
@@ -191,8 +191,8 @@ public final class UsageReportPlainTextSerializer implements MessagesToUsageWrit
             return this;
         }
 
-        public UsageReportPlainTextSerializer build() {
-            return new UsageReportPlainTextSerializer(maxStepsPerStepDefinition, features);
+        public UsageReportSerializer build() {
+            return new UsageReportSerializer(maxStepsPerStepDefinition, features);
         }
     }
 
