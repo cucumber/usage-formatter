@@ -22,7 +22,7 @@ public final class UnusedReportSerializer implements MessagesToUsageWriter.Seria
                 .collect(toList());
 
         StringJoiner joiner = new StringJoiner(lineSeparator(), lineSeparator(), lineSeparator());
-        joiner.add(unusedSteps.size() + " unused step definition:");
+        joiner.add(unusedSteps.size() + " unused step definition(s):");
         unusedSteps.forEach(entry -> {
             String location = entry.getLocation();
             String pattern = entry.getExpression();
