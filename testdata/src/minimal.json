@@ -1,0 +1,20 @@
+{
+  "stepDefinitions": [
+    {
+      "expression": "I have {int} cukes in my belly",
+      "location": "samples/minimal/minimal.ts:3",
+      "duration": {
+        "sum": 0.001000000,
+        "mean": 0.001000000,
+        "moe95": 0.0
+      },
+      "steps": [
+        {
+          "text": "I have 42 cukes in my belly",
+          "duration": 0.001000000,
+          "location": "samples/minimal/minimal.feature:9"
+        }
+      ]
+    }
+  ]
+}

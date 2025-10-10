@@ -1,0 +1,9 @@
+
+Expression/Text              Duration   Mean ±  Error Location                                               
+an order for {string}          0.009s 0.001s ± 0.000s samples/multiple-features/multiple-features.ts:3       
+  an order for "eggs"          0.001s                 samples/multiple-features/multiple-features-1.feature:3
+  an order for "milk"          0.001s                 samples/multiple-features/multiple-features-1.feature:6
+  an order for "bread"         0.001s                 samples/multiple-features/multiple-features-1.feature:9
+  an order for "batteries"     0.001s                 samples/multiple-features/multiple-features-2.feature:3
+  an order for "light bulbs"   0.001s                 samples/multiple-features/multiple-features-2.feature:6
+  4 more                                                                                                     

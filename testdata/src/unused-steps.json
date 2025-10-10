@@ -1,0 +1,25 @@
+{
+  "stepDefinitions": [
+    {
+      "expression": "a step that is used",
+      "location": "samples/unused-steps/unused-steps.ts:3",
+      "duration": {
+        "sum": 0.001000000,
+        "mean": 0.001000000,
+        "moe95": 0.0
+      },
+      "steps": [
+        {
+          "text": "a step that is used",
+          "duration": 0.001000000,
+          "location": "samples/unused-steps/unused-steps.feature:5"
+        }
+      ]
+    },
+    {
+      "expression": "a step that is not used",
+      "location": "samples/unused-steps/unused-steps.ts:7",
+      "steps": [ ]
+    }
+  ]
+}
