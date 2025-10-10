@@ -96,19 +96,22 @@ public final class UsageReportSerializer implements MessagesToUsageWriter.Serial
             return rows;
         }
 
-        steps.sort(comparing(StepUsage::getDuration).reversed());
         boolean includeAllSteps = maxStepsPerStepDefinition == INCLUDE_ALL_STEPS;
         int includeToIndex = includeAllSteps ? steps.size() : Math.min(maxStepsPerStepDefinition, steps.size());
-        for (StepUsage stepUsage : steps.subList(0, includeToIndex)) {
-            rows.add(new String[]{
-                    "  " + stepUsage.getText(),
-                    formatDuration(stepUsage.getDuration()),
-                    "",
-                    "",
-                    "",
-                    stepUsage.getLocation()
-            });
-        }
+
+        steps.stream()
+                .sorted(comparing(StepUsage::getDuration).reversed())
+                .limit(includeToIndex)
+                .forEach(stepUsage ->
+                        rows.add(new String[]{
+                                "  " + stepUsage.getText(),
+                                formatDuration(stepUsage.getDuration()),
+                                "",
+                                "",
+                                "",
+                                stepUsage.getLocation()
+                        }));
+
         if (steps.size() > includeToIndex) {
             rows.add(new String[]{
                     "  " + (steps.size() - includeToIndex) + " more",
@@ -119,7 +122,7 @@ public final class UsageReportSerializer implements MessagesToUsageWriter.Serial
                     ""
             });
         }
-        
+
         return rows;
     }
 
