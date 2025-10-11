@@ -7,16 +7,13 @@ import io.cucumber.usageformatter.UsageReport.StepUsage;
 import java.io.IOException;
 import java.io.Writer;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import java.util.StringJoiner;
 
 import static io.cucumber.usageformatter.Durations.toBigDecimalSeconds;
 import static io.cucumber.usageformatter.UsageReportSerializer.PlainTextFeature.INCLUDE_STEPS;
-import static java.lang.System.lineSeparator;
 import static java.math.RoundingMode.HALF_EVEN;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.nullsFirst;
@@ -25,7 +22,7 @@ public final class UsageReportSerializer implements MessagesToUsageWriter.Serial
 
     private static final int INCLUDE_ALL_STEPS = -1;
     public final String[] headers = new String[]{"Expression/Text", "Duration", "Mean", "±", "Error", "Location"};
-    public final boolean[] leftAlignHeader = {true, false, false, true, false, true};
+    public final boolean[] leftAlignColumn = {true, false, false, true, false, true};
     public final int maxStepsPerStepDefinition;
     private final Set<PlainTextFeature> features;
 
@@ -48,52 +45,48 @@ public final class UsageReportSerializer implements MessagesToUsageWriter.Serial
         if (stepDefinitions.isEmpty()) {
             return "";
         }
-        return formatTable(createTable(stepDefinitions));
+        Table table = createTable(stepDefinitions);
+        return TableFormatter.format(table, leftAlignColumn);
     }
 
-    private List<String[]> createTable(List<StepDefinitionUsage> stepDefinitions) {
-        List<String[]> table = new ArrayList<>();
-        table.add(headers);
-
-        stepDefinitions
+    private Table createTable(List<StepDefinitionUsage> stepDefinitions) {
+        return stepDefinitions
                 .stream()
                 .sorted(byMeanDurationDescending())
                 .map(this::createRows)
-                .forEach(table::addAll);
-
-        return table;
+                .reduce(new Table(headers), Table::addTo);
     }
 
-    private List<String[]> createRows(StepDefinitionUsage stepDefinitionUsage) {
-        List<String[]> rows = new ArrayList<>();
+    private Table createRows(StepDefinitionUsage stepDefinitionUsage) {
+        Table table = new Table();
         Statistics duration = stepDefinitionUsage.getDuration();
 
         // Add step definition row
-        rows.add(new String[]{
+        table.add(
                 stepDefinitionUsage.getExpression(),
                 duration == null ? "" : formatDuration(duration.getSum()),
                 duration == null ? "" : formatDuration(duration.getMean()),
                 duration == null ? "" : "±",
                 duration == null ? "" : formatDuration(duration.getMoe95()),
                 stepDefinitionUsage.getLocation()
-        });
+        );
 
         if (!features.contains(INCLUDE_STEPS)) {
-            return rows;
+            return table;
         }
 
         // Add rows for steps, if any
         List<StepUsage> steps = stepDefinitionUsage.getSteps();
         if (steps.isEmpty()) {
-            rows.add(new String[]{
+            table.add(
                     "  UNUSED",
                     "",
                     "",
                     "",
                     "",
                     ""
-            });
-            return rows;
+            );
+            return table;
         }
 
         boolean includeAllSteps = maxStepsPerStepDefinition == INCLUDE_ALL_STEPS;
@@ -103,45 +96,27 @@ public final class UsageReportSerializer implements MessagesToUsageWriter.Serial
                 .sorted(comparing(StepUsage::getDuration).reversed())
                 .limit(includeToIndex)
                 .forEach(stepUsage ->
-                        rows.add(new String[]{
+                        table.add(
                                 "  " + stepUsage.getText(),
                                 formatDuration(stepUsage.getDuration()),
                                 "",
                                 "",
                                 "",
                                 stepUsage.getLocation()
-                        }));
+                        ));
 
         if (steps.size() > includeToIndex) {
-            rows.add(new String[]{
+            table.add(
                     "  " + (steps.size() - includeToIndex) + " more",
                     "",
                     "",
                     "",
                     "",
                     ""
-            });
+            );
         }
 
-        return rows;
-    }
-
-    private String formatTable(List<String[]> table) {
-        StringJoiner joiner = new StringJoiner(lineSeparator(), lineSeparator(), lineSeparator());
-        int[] longestCellLengthInColumn = findLongestCellLengthInColumn(table);
-        for (String[] row : table) {
-            StringJoiner rowJoiner = new StringJoiner(" ");
-            for (int j = 0; j < row.length; j++) {
-                String newElement = renderCellWithPadding(
-                        longestCellLengthInColumn[j],
-                        row[j],
-                        leftAlignHeader[j]
-                );
-                rowJoiner.add(newElement);
-            }
-            joiner.add(rowJoiner.toString());
-        }
-        return joiner.toString();
+        return table;
     }
 
     private static Comparator<StepDefinitionUsage> byMeanDurationDescending() {
@@ -152,37 +127,6 @@ public final class UsageReportSerializer implements MessagesToUsageWriter.Serial
         return toBigDecimalSeconds(duration).setScale(3, HALF_EVEN).toPlainString() + "s";
     }
 
-    private static int[] findLongestCellLengthInColumn(List<String[]> renderedCells) {
-        // always square and non-sparse.
-        int width = renderedCells.get(0).length;
-        int[] longestCellInColumnLength = new int[width];
-        for (String[] row : renderedCells) {
-            for (int colIndex = 0; colIndex < width; colIndex++) {
-                int current = longestCellInColumnLength[colIndex];
-                int candidate = row[colIndex].length();
-                longestCellInColumnLength[colIndex] = Math.max(current, candidate);
-            }
-        }
-        return longestCellInColumnLength;
-    }
-
-    private static String renderCellWithPadding(int width, String cell, boolean leftAlign) {
-        StringBuilder result = new StringBuilder();
-        if (leftAlign) {
-            result.append(cell);
-            padSpace(result, width - cell.length());
-        } else {
-            padSpace(result, width - cell.length());
-            result.append(cell);
-        }
-        return result.toString();
-    }
-
-    private static void padSpace(StringBuilder result, int padding) {
-        for (int i = 0; i < padding; i++) {
-            result.append(" ");
-        }
-    }
 
     public static final class Builder {
         private final Set<PlainTextFeature> features = EnumSet.noneOf(PlainTextFeature.class);
