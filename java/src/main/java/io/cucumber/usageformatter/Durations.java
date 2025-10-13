@@ -22,6 +22,11 @@ final class Durations {
 
     /**
      * Calculate the margin of error with a 0.95% confidence interval.
+     * <p>
+     * So assuming a normal distribution, the duration of a step will fall
+     * within {@code mean ± moe95} with 95% probability. 
+     *
+     * @see <a href="https://en.wikipedia.org/wiki/Margin_of_error">Wikipedia - Margin of error</a>
      */
     private static Duration calculateMarginOfError95(List<Duration> durations, Duration mean) {
         BigDecimal meanSeconds = toBigDecimalSeconds(mean);

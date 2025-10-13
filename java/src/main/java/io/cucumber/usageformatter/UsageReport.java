@@ -72,7 +72,12 @@ public final class UsageReport {
         }
 
         /**
-         * Margin of error with a 95% confidence interval, assuming a normal distribution.
+         * Margin of error with a 95% confidence interval. 
+         * <p>
+         * So assuming a normal distribution, the duration of a step will fall
+         * within {@code mean ± moe95} with 95% probability. 
+         * 
+         * @see <a href="https://en.wikipedia.org/wiki/Margin_of_error">Wikipedia - Margin of error</a>
          */
         public Duration getMoe95() {
             return moe95;
