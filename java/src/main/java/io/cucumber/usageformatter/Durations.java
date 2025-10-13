@@ -36,7 +36,7 @@ final class Durations {
                 .reduce(BigDecimal::add)
                 .orElse(BigDecimal.ZERO);
         // TODO: With Java 17, use BigDecimal.sqrt and
-        // BigDecimal.divideAndRemainder for seconds and nos
+        // BigDecimal.divideAndRemainder for seconds and nanos
         double marginOfError = 2 * Math.sqrt(variance.doubleValue()) / durations.size();
         long seconds = (long) Math.floor(marginOfError);
         long nanos = (long) Math.floor((marginOfError - seconds) * TimeUnit.SECONDS.toNanos(1));
