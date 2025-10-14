@@ -1,11 +1,10 @@
 package io.cucumber.usageformatter;
 
 import io.cucumber.messages.Convertor;
-import io.cucumber.messages.types.Location;
-import io.cucumber.messages.types.PickleStep;
 import io.cucumber.messages.types.StepDefinition;
 import io.cucumber.messages.types.TestStepFinished;
 import io.cucumber.query.Query;
+import io.cucumber.usageformatter.UsageReport.StepUsage;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -23,21 +22,16 @@ import static java.util.stream.Collectors.toList;
 final class UsageReportBuilder {
 
     private final Query query;
-    private final Function<String, String> uriFormatter;
-    private final SourceReferenceFormatter sourceReferenceFormatter;
 
-    UsageReportBuilder(Query query, Function<String, String> uriFormatter) {
+    UsageReportBuilder(Query query) {
         this.query = requireNonNull(query);
-        this.uriFormatter = requireNonNull(uriFormatter);
-        this.sourceReferenceFormatter = new SourceReferenceFormatter(uriFormatter);
     }
 
     UsageReport build() {
-        Map<Optional<StepDefinition>, List<UsageReport.StepUsage>> testStepsFinishedByStepDefinition = query
+        Map<Optional<StepDefinition>, List<Optional<StepUsage>>> testStepsFinishedByStepDefinition = query
                 .findAllTestStepFinished()
                 .stream()
-                .collect(groupingBy(findUnambiguousStepDefinitionBy(), LinkedHashMap::new,
-                        mapping(createStepUsage(), toList())));
+                .collect(groupingBy(findUnambiguousStepDefinitionBy(), LinkedHashMap::new, mapping(createStepUsage(), toList())));
 
         // Add unused step definitions
         query.findAllStepDefinitions().stream()
@@ -50,57 +44,40 @@ final class UsageReportBuilder {
                 // Filter out steps with without a step definition or with an
                 // ambiguous step definition. These can't be represented.
                 .filter(entry -> entry.getKey().isPresent())
-                .map(entry -> createStepDefinitionUsage(entry.getKey().get(), entry.getValue()))
+                .map(entry -> createStepDefinitionUsage(entry.getKey().get(), flatten(entry.getValue())))
                 .collect(toList());
         return new UsageReport(stepDefinitionUsages);
     }
 
-    private UsageReport.StepDefinitionUsage createStepDefinitionUsage(StepDefinition stepDefinition, List<UsageReport.StepUsage> stepUsages) {
+    private UsageReport.StepDefinitionUsage createStepDefinitionUsage(StepDefinition stepDefinition, List<StepUsage> matches) {
         return new UsageReport.StepDefinitionUsage(
-                formatSource(stepDefinition),
-                formatSourceReference(stepDefinition),
-                createStatistics(stepUsages),
-                stepUsages
+                stepDefinition.getPattern(),
+                stepDefinition.getSourceReference(),
+                createStatistics(matches),
+                matches
         );
     }
 
-    private String formatSource(StepDefinition stepDefinition) {
-        return stepDefinition.getPattern().getSource();
-    }
-
-    private String formatSourceReference(StepDefinition stepDefinition) {
-        return sourceReferenceFormatter.format(stepDefinition.getSourceReference()).orElse("");
-    }
-
-    private UsageReport.Statistics createStatistics(List<UsageReport.StepUsage> stepUsages) {
+    private UsageReport.Statistics createStatistics(List<StepUsage> stepUsages) {
         List<Duration> durations = stepUsages.stream()
-                .map(UsageReport.StepUsage::getDuration)
+                .map(StepUsage::getDuration)
+                .map(Convertor::toDuration)
                 .collect(toList());
         return Durations.createStatistics(durations);
     }
 
-    private Function<TestStepFinished, UsageReport.StepUsage> createStepUsage() {
-        return testStepFinished -> query
-                .findTestStepBy(testStepFinished)
+    private Function<TestStepFinished, Optional<StepUsage>> createStepUsage() {
+        return testStepFinished -> query.findTestStepBy(testStepFinished)
                 .flatMap(query::findPickleStepBy)
-                .map(pickleStep -> createStepUsage(testStepFinished, pickleStep))
-                .orElseGet(() -> new UsageReport.StepUsage("", Duration.ZERO, ""));
-    }
-
-    private UsageReport.StepUsage createStepUsage(TestStepFinished testStepFinished, PickleStep pickleStep) {
-        String text = pickleStep.getText();
-        String location = findLocationOf(testStepFinished);
-        Duration duration = Convertor.toDuration(testStepFinished.getTestStepResult().getDuration());
-        return new UsageReport.StepUsage(text, duration, location);
-    }
-
-    private String findLocationOf(TestStepFinished testStepFinished) {
-        return query.findPickleBy(testStepFinished)
-                .map(pickle -> uriFormatter.apply(pickle.getUri()) + query.findLocationOf(pickle)
-                        .map(Location::getLine)
-                        .map(line -> ":" + line)
-                        .orElse(""))
-                .orElse("");
+                .flatMap(pickleStep -> query
+                        .findPickleBy(testStepFinished)
+                        .map(pickle -> new StepUsage(
+                                        pickleStep.getText(),
+                                        testStepFinished.getTestStepResult().getDuration(),
+                                        pickle.getUri(),
+                                        query.findLocationOf(pickle).orElse(null)
+                                )
+                        ));
     }
 
     private Function<TestStepFinished, Optional<StepDefinition>> findUnambiguousStepDefinitionBy() {
@@ -108,4 +85,7 @@ final class UsageReportBuilder {
                 .flatMap(query::findUnambiguousStepDefinitionBy);
     }
 
+    private static List<StepUsage> flatten(List<Optional<StepUsage>> value) {
+        return value.stream().filter(Optional::isPresent).map(Optional::get).collect(toList());
+    }
 }

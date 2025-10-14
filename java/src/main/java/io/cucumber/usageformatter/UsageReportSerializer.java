@@ -1,34 +1,43 @@
 package io.cucumber.usageformatter;
 
+import io.cucumber.messages.DurationComparator;
+import io.cucumber.messages.types.Duration;
+import io.cucumber.messages.types.Location;
 import io.cucumber.usageformatter.UsageReport.Statistics;
 import io.cucumber.usageformatter.UsageReport.StepDefinitionUsage;
 import io.cucumber.usageformatter.UsageReport.StepUsage;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.time.Duration;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 import static io.cucumber.usageformatter.Durations.toBigDecimalSeconds;
 import static io.cucumber.usageformatter.UsageReportSerializer.PlainTextFeature.INCLUDE_STEPS;
 import static java.math.RoundingMode.HALF_EVEN;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.nullsFirst;
+import static java.util.Objects.requireNonNull;
 
 public final class UsageReportSerializer implements MessagesToUsageWriter.Serializer {
 
     private static final int INCLUDE_ALL_STEPS = -1;
+    private static final DurationComparator durationComparator = new DurationComparator();
     public final String[] headers = new String[]{"Expression/Text", "Duration", "Mean", "±", "Error", "Location"};
     public final boolean[] leftAlignColumn = {true, false, false, true, false, true};
     public final int maxStepsPerStepDefinition;
     private final Set<PlainTextFeature> features;
+    private final Function<String, String> uriFormatter;
+    private final SourceReferenceFormatter sourceReferenceFormatter;
 
-    private UsageReportSerializer(int maxStepsPerStepDefinition, Set<PlainTextFeature> features) {
+    private UsageReportSerializer(int maxStepsPerStepDefinition, Set<PlainTextFeature> features, Function<String, String> uriFormatter) {
         this.maxStepsPerStepDefinition = maxStepsPerStepDefinition;
         this.features = features;
+        this.uriFormatter = requireNonNull(uriFormatter);
+        this.sourceReferenceFormatter = new SourceReferenceFormatter(uriFormatter);
     }
 
     public static Builder builder() {
@@ -63,12 +72,12 @@ public final class UsageReportSerializer implements MessagesToUsageWriter.Serial
 
         // Add step definition row
         table.add(
-                stepDefinitionUsage.getExpression(),
+                stepDefinitionUsage.getExpression().getSource(),
                 duration == null ? "" : formatDuration(duration.getSum()),
                 duration == null ? "" : formatDuration(duration.getMean()),
                 duration == null ? "" : "±",
                 duration == null ? "" : formatDuration(duration.getMoe95()),
-                stepDefinitionUsage.getLocation()
+                sourceReferenceFormatter.format(stepDefinitionUsage.getSourceReference()).orElse("")
         );
 
         if (!features.contains(INCLUDE_STEPS)) {
@@ -76,7 +85,7 @@ public final class UsageReportSerializer implements MessagesToUsageWriter.Serial
         }
 
         // Add rows for steps, if any
-        List<StepUsage> steps = stepDefinitionUsage.getSteps();
+        List<StepUsage> steps = stepDefinitionUsage.getMatches();
         if (steps.isEmpty()) {
             table.add(
                     "  UNUSED",
@@ -93,7 +102,7 @@ public final class UsageReportSerializer implements MessagesToUsageWriter.Serial
         int includeToIndex = includeAllSteps ? steps.size() : Math.min(maxStepsPerStepDefinition, steps.size());
 
         steps.stream()
-                .sorted(comparing(StepUsage::getDuration).reversed())
+                .sorted(comparing(StepUsage::getDuration, durationComparator).reversed())
                 .limit(includeToIndex)
                 .forEach(stepUsage ->
                         table.add(
@@ -102,7 +111,10 @@ public final class UsageReportSerializer implements MessagesToUsageWriter.Serial
                                 "",
                                 "",
                                 "",
-                                stepUsage.getLocation()
+                                uriFormatter.apply(stepUsage.getUri()) + stepUsage.getLocation()
+                                        .map(Location::getLine)
+                                        .map(line -> ":" + line)
+                                        .orElse("")
                         ));
 
         if (steps.size() > includeToIndex) {
@@ -120,7 +132,8 @@ public final class UsageReportSerializer implements MessagesToUsageWriter.Serial
     }
 
     private static Comparator<StepDefinitionUsage> byMeanDurationDescending() {
-        return comparing(StepDefinitionUsage::getDuration, nullsFirst(comparing(Statistics::getMean))).reversed();
+        Comparator<Statistics> compareMean = comparing(Statistics::getMean, new DurationComparator());
+        return comparing(StepDefinitionUsage::getDuration, nullsFirst(compareMean)).reversed();
     }
 
     private String formatDuration(Duration duration) {
@@ -131,6 +144,7 @@ public final class UsageReportSerializer implements MessagesToUsageWriter.Serial
     public static final class Builder {
         private final Set<PlainTextFeature> features = EnumSet.noneOf(PlainTextFeature.class);
         private int maxStepsPerStepDefinition = INCLUDE_ALL_STEPS;
+        private Function<String, String> uriFormatter = Function.identity();
 
         /**
          * Toggles a given feature.
@@ -154,8 +168,30 @@ public final class UsageReportSerializer implements MessagesToUsageWriter.Serial
             return this;
         }
 
+        /**
+         * Removes a given prefix from all URI locations.
+         * <p>
+         * The typical usage would be to trim the current working directory.
+         * This makes the report more readable.
+         */
+        public Builder removeUriPrefix(String prefix) {
+            // TODO: Needs coverage
+            this.uriFormatter = removePrefix(requireNonNull(prefix));
+            return this;
+        }
+
+        private static Function<String, String> removePrefix(String prefix) {
+            // TODO: Needs coverage
+            return s -> {
+                if (s.startsWith(prefix)) {
+                    return s.substring(prefix.length());
+                }
+                return s;
+            };
+        }
+        
         public UsageReportSerializer build() {
-            return new UsageReportSerializer(maxStepsPerStepDefinition, features);
+            return new UsageReportSerializer(maxStepsPerStepDefinition, features, uriFormatter);
         }
     }
 

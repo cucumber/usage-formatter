@@ -1,0 +1,30 @@
+{
+  "stepDefinitions": [
+    {
+      "sourceReference": {
+        "uri": "samples/ambiguous/ambiguous.ts",
+        "location": {
+          "line": 3
+        }
+      },
+      "matches": [ ],
+      "expression": {
+        "source": "^a (.*?) with (.*?)$",
+        "type": "REGULAR_EXPRESSION"
+      }
+    },
+    {
+      "sourceReference": {
+        "uri": "samples/ambiguous/ambiguous.ts",
+        "location": {
+          "line": 7
+        }
+      },
+      "matches": [ ],
+      "expression": {
+        "source": "^a step with (.*)$",
+        "type": "REGULAR_EXPRESSION"
+      }
+    }
+  ]
+}

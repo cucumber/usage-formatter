@@ -9,7 +9,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.util.function.Function;
 
 import static io.cucumber.query.Repository.RepositoryFeature.INCLUDE_GHERKIN_DOCUMENTS;
 import static io.cucumber.query.Repository.RepositoryFeature.INCLUDE_STEP_DEFINITIONS;
@@ -30,15 +29,13 @@ public final class MessagesToUsageWriter implements AutoCloseable {
             .build();
     private final Query query = new Query(repository);
     private final Serializer serializer;
-    private final Function<String, String> uriFormatter;
     private boolean streamClosed = false;
 
-    MessagesToUsageWriter(OutputStream out, Serializer serializer, Function<String, String> uriFormatter) {
+    MessagesToUsageWriter(OutputStream out, Serializer serializer) {
         this.out = new OutputStreamWriter(
                 requireNonNull(out),
                 StandardCharsets.UTF_8);
         this.serializer = requireNonNull(serializer);
-        this.uriFormatter = requireNonNull(uriFormatter);
     }
 
     public void write(Envelope envelope) throws IOException {
@@ -54,37 +51,14 @@ public final class MessagesToUsageWriter implements AutoCloseable {
 
     public static final class Builder {
         private final Serializer serializer;
-        private Function<String, String> uriFormatter = Function.identity();
 
         private Builder(Serializer serializer) {
             this.serializer = requireNonNull(serializer);
         }
 
-        private static Function<String, String> removePrefix(String prefix) {
-            // TODO: Needs coverage
-            return s -> {
-                if (s.startsWith(prefix)) {
-                    return s.substring(prefix.length());
-                }
-                return s;
-            };
-        }
-
-        /**
-         * Removes a given prefix from all URI locations.
-         * <p>
-         * The typical usage would be to trim the current working directory.
-         * This makes the report more readable.
-         */
-        public Builder removeUriPrefix(String prefix) {
-            // TODO: Needs coverage
-            this.uriFormatter = removePrefix(requireNonNull(prefix));
-            return this;
-        }
-
         public MessagesToUsageWriter build(OutputStream out) {
             requireNonNull(out);
-            return new MessagesToUsageWriter(out, serializer, uriFormatter);
+            return new MessagesToUsageWriter(out, serializer);
         }
     }
 
@@ -94,7 +68,7 @@ public final class MessagesToUsageWriter implements AutoCloseable {
             return;
         }
         try {
-            UsageReport report = new UsageReportBuilder(query, uriFormatter).build();
+            UsageReport report = new UsageReportBuilder(query).build();
             serializer.writeValue(out, report);
         } finally {
             try {

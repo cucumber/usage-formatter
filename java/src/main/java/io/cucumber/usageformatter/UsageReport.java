@@ -1,7 +1,12 @@
 package io.cucumber.usageformatter;
 
-import java.time.Duration;
+import io.cucumber.messages.types.Duration;
+import io.cucumber.messages.types.Location;
+import io.cucumber.messages.types.SourceReference;
+import io.cucumber.messages.types.StepDefinitionPattern;
+
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
@@ -21,34 +26,34 @@ public final class UsageReport {
      */
     public static final class StepDefinitionUsage {
 
-        private final String expression;
-        private final String location;
+        private final StepDefinitionPattern pattern;
+        private final SourceReference sourceReference;
         private final Statistics duration;
-        private final List<StepUsage> steps;
+        private final List<StepUsage> matches;
 
         StepDefinitionUsage(
-                String expression, String location, Statistics duration, List<StepUsage> steps
+                StepDefinitionPattern pattern, SourceReference sourceReference, Statistics duration, List<StepUsage> matches
         ) {
-            this.expression = requireNonNull(expression);
-            this.location = requireNonNull(location);
+            this.pattern = requireNonNull(pattern);
+            this.sourceReference = requireNonNull(sourceReference);
             this.duration = duration;
-            this.steps = requireNonNull(steps);
+            this.matches = requireNonNull(matches);
         }
 
-        public String getExpression() {
-            return expression;
+        public StepDefinitionPattern getExpression() {
+            return pattern;
         }
 
         public Statistics getDuration() {
             return duration;
         }
 
-        public List<StepUsage> getSteps() {
-            return steps;
+        public List<StepUsage> getMatches() {
+            return matches;
         }
 
-        public String getLocation() {
-            return location;
+        public SourceReference getSourceReference() {
+            return sourceReference;
         }
     }
 
@@ -72,11 +77,11 @@ public final class UsageReport {
         }
 
         /**
-         * Margin of error with a 95% confidence interval. 
+         * Margin of error with a 95% confidence interval.
          * <p>
          * So assuming a normal distribution, the duration of a step will fall
-         * within {@code mean ± moe95} with 95% probability. 
-         * 
+         * within {@code mean ± moe95} with 95% probability.
+         *
          * @see <a href="https://en.wikipedia.org/wiki/Margin_of_error">Wikipedia - Margin of error</a>
          */
         public Duration getMoe95() {
@@ -88,20 +93,26 @@ public final class UsageReport {
 
         private final String text;
         private final Duration duration;
-        private final String location;
+        private final String uri;
+        private final Location location;
 
-        StepUsage(String text, Duration duration, String location) {
+        StepUsage(String text, Duration duration, String uri, Location location) {
             this.text = requireNonNull(text);
             this.duration = requireNonNull(duration);
-            this.location = requireNonNull(location);
+            this.uri = requireNonNull(uri);
+            this.location = location;
         }
 
         public Duration getDuration() {
             return duration;
         }
 
-        public String getLocation() {
-            return location;
+        public String getUri() {
+            return uri;
+        }
+
+        public Optional<Location> getLocation() {
+            return Optional.ofNullable(location);
         }
 
         public String getText() {

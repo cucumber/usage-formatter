@@ -1,0 +1,6 @@
+
+2 unused step definition(s)
+
+Location                         Expression            
+samples/ambiguous/ambiguous.ts:3 # ^a (.*?) with (.*?)$
+samples/ambiguous/ambiguous.ts:7 # ^a step with (.*)$  

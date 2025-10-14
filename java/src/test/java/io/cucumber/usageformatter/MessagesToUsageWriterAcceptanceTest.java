@@ -52,6 +52,7 @@ class MessagesToUsageWriterAcceptanceTest {
 
     private static List<Path> getSources() {
         return Arrays.asList(
+                Paths.get("../testdata/src/ambiguous.ndjson"),
                 Paths.get("../testdata/src/minimal.ndjson"),
                 Paths.get("../testdata/src/unused-steps.ndjson"),
                 Paths.get("../testdata/src/multiple-features.ndjson")
