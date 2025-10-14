@@ -48,6 +48,10 @@ The output can also be rendered as a json report.
           "nanos": 0
         }
       },
+      "expression": {
+        "source": "an order for {string}",
+        "type": "CUCUMBER_EXPRESSION"
+      },
       "matches": [
         {
           "text": "an order for \"eggs\"",
