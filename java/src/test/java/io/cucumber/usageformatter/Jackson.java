@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.cfg.ConstructorDetector;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_ABSENT;
@@ -21,7 +20,6 @@ import static com.fasterxml.jackson.core.util.Separators.Spacing.AFTER;
 final class Jackson {
     public static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
             .addModule(new Jdk8Module())
-            .addModule(new JavaTimeModule())
             .addModule(new ParameterNamesModule(Mode.PROPERTIES))
             .defaultPropertyInclusion(construct(NON_ABSENT, NON_ABSENT))
             .constructorDetector(ConstructorDetector.USE_PROPERTIES_BASED)
