@@ -17,9 +17,9 @@ public class DurationsTest {
     void testToBigDecimalSeconds() {
         assertThat(toBigDecimalSeconds(Duration.ofMillis(0))).isEqualTo(BigDecimal.valueOf(0, 9));
         assertThat(toBigDecimalSeconds(Duration.ofMillis(100))).isEqualTo(BigDecimal.valueOf(100_000_000, 9));
-        assertThat(toBigDecimalSeconds(Duration.ofMillis(1000))).isEqualTo(BigDecimal.valueOf(1_000_000_000, 9));
-        assertThat(toBigDecimalSeconds(createDuration(0L, 0L))).isEqualTo(BigDecimal.valueOf(0, 9));
-        assertThat(toBigDecimalSeconds(createDuration(0L, 100_000_000L))).isEqualTo(BigDecimal.valueOf(100_000_000, 9));
+        assertThat(toBigDecimalSeconds(Duration.ofSeconds(1))).isEqualTo(BigDecimal.valueOf(1_000_000_000, 9));
+        assertThat(toBigDecimalSeconds(createDuration(0L, 0))).isEqualTo(BigDecimal.valueOf(0, 9));
+        assertThat(toBigDecimalSeconds(createDuration(0L, 100_000_000))).isEqualTo(BigDecimal.valueOf(100_000_000, 9));
         assertThat(toBigDecimalSeconds(createDuration(1L, 0))).isEqualTo(BigDecimal.valueOf(1_000_000_000, 9));
     }
 
@@ -38,10 +38,9 @@ public class DurationsTest {
                 Duration.ofSeconds(4)
         ));
 
-        assertThat(statistics).isNotNull();
-        assertThat(statistics.getSum()).isEqualTo(createDuration(8L, 0L));
-        assertThat(statistics.getMean()).isEqualTo(createDuration(2L, 0L));
-        assertThat(statistics.getMoe95()).isEqualTo(createDuration(1L, 224744871L));
+        assertThat(statistics).extracting(Statistics::getSum).isEqualTo(createDuration(8L, 0));
+        assertThat(statistics).extracting(Statistics::getMean).isEqualTo(createDuration(2L, 0));
+        assertThat(statistics).extracting(Statistics::getMoe95).isEqualTo(createDuration(1L, 224744871));
     }
 
     @Test
@@ -52,13 +51,12 @@ public class DurationsTest {
                 Duration.ofSeconds(4)
         ));
 
-        assertThat(statistics).isNotNull();
-        assertThat(statistics.getSum()).isEqualTo(createDuration(7L, 0L));
-        assertThat(statistics.getMean()).isEqualTo(createDuration(2L, 333333333L));
-        assertThat(statistics.getMoe95()).isEqualTo(createDuration(1L, 440164599L));
+        assertThat(statistics).extracting(Statistics::getSum).isEqualTo(createDuration(7L, 0));
+        assertThat(statistics).extracting(Statistics::getMean).isEqualTo(createDuration(2L, 333333333));
+        assertThat(statistics).extracting(Statistics::getMoe95).isEqualTo(createDuration(1L, 440164599));
     }
 
-    private static io.cucumber.messages.types.Duration createDuration(long seconds, long nanos) {
+    private static io.cucumber.messages.types.Duration createDuration(long seconds, int nanos) {
         return new io.cucumber.messages.types.Duration(seconds, nanos);
     }
 }

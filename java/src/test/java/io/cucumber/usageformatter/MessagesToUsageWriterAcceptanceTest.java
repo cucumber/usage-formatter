@@ -2,7 +2,6 @@ package io.cucumber.usageformatter;
 
 import io.cucumber.messages.NdjsonToMessageIterable;
 import io.cucumber.messages.types.Envelope;
-import io.cucumber.usageformatter.MessagesToUsageWriter.Builder;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -22,20 +21,20 @@ import java.util.Map;
 
 import static io.cucumber.usageformatter.Jackson.OBJECT_MAPPER;
 import static io.cucumber.usageformatter.Jackson.PRETTY_PRINTER;
-import static io.cucumber.usageformatter.MessagesToUsageWriter.builder;
-import static java.nio.file.Files.readAllBytes;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class MessagesToUsageWriterAcceptanceTest {
-    private static final NdjsonToMessageIterable.Deserializer deserializer = (json) -> OBJECT_MAPPER.readValue(json, Envelope.class);
+    private static final NdjsonToMessageIterable.Deserializer deserializer = json -> OBJECT_MAPPER.readValue(json, Envelope.class);
     private static final MessagesToUsageWriter.Serializer jsonSerializer = OBJECT_MAPPER.writer(PRETTY_PRINTER)::writeValue;
 
     static List<TestCase> acceptance() {
-        Map<String, Builder> formats = new LinkedHashMap<>();
-        formats.put("json", builder(jsonSerializer));
-        formats.put("unused.txt", builder(new UnusedReportSerializer()));
-        formats.put("step-definitions.txt", builder(UsageReportSerializer.builder().build()));
-        formats.put("with-steps.txt", builder(UsageReportSerializer.builder()
+        Map<String, MessagesToUsageWriter.Builder> formats = new LinkedHashMap<>();
+        formats.put("json", MessagesToUsageWriter.builder(jsonSerializer));
+        formats.put("unused.txt", MessagesToUsageWriter.builder(new UnusedReportSerializer()));
+        formats.put("step-definitions.txt", MessagesToUsageWriter.builder(UsageReportSerializer.builder().build()));
+        formats.put("with-steps.txt", MessagesToUsageWriter.builder(UsageReportSerializer.builder()
                 .feature(UsageReportSerializer.PlainTextFeature.INCLUDE_STEPS, true)
                 .maxStepsPerStepDefinition(5)
                 .build()));
@@ -59,7 +58,7 @@ class MessagesToUsageWriterAcceptanceTest {
         );
     }
 
-    private static <T extends OutputStream> T writeUsageReport(TestCase testCase, T out, Builder builder) throws IOException {
+    private static <T extends OutputStream> T writeUsageReport(TestCase testCase, T out, MessagesToUsageWriter.Builder builder) throws IOException {
         try (InputStream in = Files.newInputStream(testCase.source)) {
             try (NdjsonToMessageIterable envelopes = new NdjsonToMessageIterable(in, deserializer)) {
                 try (MessagesToUsageWriter writer = builder.build(out)) {
@@ -76,7 +75,7 @@ class MessagesToUsageWriterAcceptanceTest {
     @MethodSource("acceptance")
     void test(TestCase testCase) throws IOException {
         ByteArrayOutputStream bytes = writeUsageReport(testCase, new ByteArrayOutputStream(), testCase.builder);
-        assertThat(bytes.toString()).isEqualToIgnoringNewLines(new String(readAllBytes(testCase.expected)));
+        assertThat(bytes.toString(UTF_8)).isEqualToIgnoringNewLines(Files.readString(testCase.expected));
     }
 
     @ParameterizedTest
@@ -95,18 +94,18 @@ class MessagesToUsageWriterAcceptanceTest {
     static class TestCase {
         private final Path source;
         private final String format;
-        private final Builder builder;
+        private final MessagesToUsageWriter.Builder builder;
         private final Path expected;
 
         private final String name;
 
-        TestCase(Path source, String format, Builder builder) {
+        TestCase(Path source, String format, MessagesToUsageWriter.Builder builder) {
             this.source = source;
             this.format = format;
             this.builder = builder;
             String fileName = source.getFileName().toString();
             this.name = fileName.substring(0, fileName.lastIndexOf(".ndjson"));
-            this.expected = source.getParent().resolve(name + "." + format);
+            this.expected = requireNonNull(source.getParent()).resolve(name + "." + format);
         }
 
         @Override
