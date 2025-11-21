@@ -6,6 +6,10 @@ import static java.lang.System.lineSeparator;
 
 final class TableFormatter {
     
+    private TableFormatter(){
+        // utility class
+    }
+    
     static String format(Table table, boolean[] leftAlignColumn) {
         StringJoiner joiner = new StringJoiner(lineSeparator(), lineSeparator(), lineSeparator());
         int[] longestCellLengthInColumn = findLongestCellLengthInColumn(table);
