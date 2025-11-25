@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 final class Durations {
 
     private Durations() {
-        // utility class
+        /* no-op */
     }
 
     @Nullable

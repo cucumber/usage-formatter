@@ -7,7 +7,7 @@ import static java.lang.System.lineSeparator;
 final class TableFormatter {
     
     private TableFormatter(){
-        // utility class
+        /* no-op */
     }
     
     static String format(Table table, boolean[] leftAlignColumn) {
