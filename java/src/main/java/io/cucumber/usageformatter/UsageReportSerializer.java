@@ -200,6 +200,6 @@ public final class UsageReportSerializer implements MessagesToUsageWriter.Serial
         /**
          * Include steps using a step definition.
          */
-        INCLUDE_STEPS,
+        INCLUDE_STEPS
     }
 }

@@ -5,6 +5,7 @@ import io.cucumber.messages.types.StepDefinition;
 import io.cucumber.messages.types.TestStepFinished;
 import io.cucumber.query.Query;
 import io.cucumber.usageformatter.UsageReport.StepUsage;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -12,7 +13,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.groupingBy;
@@ -31,7 +31,7 @@ final class UsageReportBuilder {
         Map<Optional<StepDefinition>, List<Optional<StepUsage>>> testStepsFinishedByStepDefinition = query
                 .findAllTestStepFinished()
                 .stream()
-                .collect(groupingBy(findUnambiguousStepDefinitionBy(), LinkedHashMap::new, mapping(createStepUsage(), toList())));
+                .collect(groupingBy(this::findUnambiguousStepDefinitionBy, LinkedHashMap::new, mapping(this::createStepUsage, toList())));
 
         // Add unused step definitions
         query.findAllStepDefinitions().stream()
@@ -58,7 +58,7 @@ final class UsageReportBuilder {
         );
     }
 
-    private UsageReport.Statistics createStatistics(List<StepUsage> stepUsages) {
+    private UsageReport.@Nullable Statistics createStatistics(List<StepUsage> stepUsages) {
         List<Duration> durations = stepUsages.stream()
                 .map(StepUsage::getDuration)
                 .map(Convertor::toDuration)
@@ -66,8 +66,8 @@ final class UsageReportBuilder {
         return Durations.createStatistics(durations);
     }
 
-    private Function<TestStepFinished, Optional<StepUsage>> createStepUsage() {
-        return testStepFinished -> query.findTestStepBy(testStepFinished)
+    private Optional<StepUsage> createStepUsage(TestStepFinished testStepFinished) {
+        return query.findTestStepBy(testStepFinished)
                 .flatMap(query::findPickleStepBy)
                 .flatMap(pickleStep -> query
                         .findPickleBy(testStepFinished)
@@ -80,8 +80,8 @@ final class UsageReportBuilder {
                         ));
     }
 
-    private Function<TestStepFinished, Optional<StepDefinition>> findUnambiguousStepDefinitionBy() {
-        return testStepFinished -> query.findTestStepBy(testStepFinished)
+    private Optional<StepDefinition> findUnambiguousStepDefinitionBy(TestStepFinished testStepFinished) {
+        return query.findTestStepBy(testStepFinished)
                 .flatMap(query::findUnambiguousStepDefinitionBy);
     }
 

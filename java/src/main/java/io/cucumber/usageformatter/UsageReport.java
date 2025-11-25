@@ -4,6 +4,7 @@ import io.cucumber.messages.types.Duration;
 import io.cucumber.messages.types.Location;
 import io.cucumber.messages.types.SourceReference;
 import io.cucumber.messages.types.StepDefinitionPattern;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,11 +29,11 @@ public final class UsageReport {
 
         private final StepDefinitionPattern pattern;
         private final SourceReference sourceReference;
-        private final Statistics duration;
+        private final @Nullable Statistics duration;
         private final List<StepUsage> matches;
 
         StepDefinitionUsage(
-                StepDefinitionPattern pattern, SourceReference sourceReference, Statistics duration, List<StepUsage> matches
+                StepDefinitionPattern pattern, SourceReference sourceReference, @Nullable Statistics duration, List<StepUsage> matches
         ) {
             this.pattern = requireNonNull(pattern);
             this.sourceReference = requireNonNull(sourceReference);
@@ -44,7 +45,7 @@ public final class UsageReport {
             return pattern;
         }
 
-        public Statistics getDuration() {
+        public @Nullable Statistics getDuration() {
             return duration;
         }
 
@@ -94,9 +95,9 @@ public final class UsageReport {
         private final String text;
         private final Duration duration;
         private final String uri;
-        private final Location location;
+        private final @Nullable Location location;
 
-        StepUsage(String text, Duration duration, String uri, Location location) {
+        StepUsage(String text, Duration duration, String uri, @Nullable Location location) {
             this.text = requireNonNull(text);
             this.duration = requireNonNull(duration);
             this.uri = requireNonNull(uri);

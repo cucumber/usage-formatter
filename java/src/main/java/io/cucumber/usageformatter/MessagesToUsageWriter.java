@@ -49,19 +49,6 @@ public final class MessagesToUsageWriter implements AutoCloseable {
         return new Builder(serializer);
     }
 
-    public static final class Builder {
-        private final Serializer serializer;
-
-        private Builder(Serializer serializer) {
-            this.serializer = requireNonNull(serializer);
-        }
-
-        public MessagesToUsageWriter build(OutputStream out) {
-            requireNonNull(out);
-            return new MessagesToUsageWriter(out, serializer);
-        }
-    }
-
     @Override
     public void close() throws IOException {
         if (streamClosed) {
@@ -76,6 +63,19 @@ public final class MessagesToUsageWriter implements AutoCloseable {
             } finally {
                 streamClosed = true;
             }
+        }
+    }
+
+    public static final class Builder {
+        private final Serializer serializer;
+
+        private Builder(Serializer serializer) {
+            this.serializer = requireNonNull(serializer);
+        }
+
+        public MessagesToUsageWriter build(OutputStream out) {
+            requireNonNull(out);
+            return new MessagesToUsageWriter(out, serializer);
         }
     }
 
