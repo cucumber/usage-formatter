@@ -17,7 +17,7 @@
     <url>https://github.com/cucumber/usage-formatter</url>
 
     <properties>
-        <osgi.bundle-symbolic-name>io.cucumber.usageformatter</osgi.bundle-symbolic-name>
+        <project.Automatic-Module-Name>io.cucumber.usageformatter</project.Automatic-Module-Name>
         <project.build.outputTimestamp>1760538071</project.build.outputTimestamp>
     </properties>
 
