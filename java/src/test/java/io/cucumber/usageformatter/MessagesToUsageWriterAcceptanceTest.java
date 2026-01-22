@@ -1,6 +1,7 @@
 package io.cucumber.usageformatter;
 
-import io.cucumber.messages.NdjsonToMessageIterable;
+import io.cucumber.messages.NdjsonToMessageReader;
+import io.cucumber.messages.ndjson.Deserializer;
 import io.cucumber.messages.types.Envelope;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -26,7 +27,6 @@ import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class MessagesToUsageWriterAcceptanceTest {
-    private static final NdjsonToMessageIterable.Deserializer deserializer = json -> OBJECT_MAPPER.readValue(json, Envelope.class);
     private static final MessagesToUsageWriter.Serializer jsonSerializer = OBJECT_MAPPER.writer(PRETTY_PRINTER)::writeValue;
 
     static List<TestCase> acceptance() {
@@ -60,9 +60,9 @@ class MessagesToUsageWriterAcceptanceTest {
 
     private static <T extends OutputStream> T writeUsageReport(TestCase testCase, T out, MessagesToUsageWriter.Builder builder) throws IOException {
         try (InputStream in = Files.newInputStream(testCase.source)) {
-            try (NdjsonToMessageIterable envelopes = new NdjsonToMessageIterable(in, deserializer)) {
+            try (NdjsonToMessageReader reader = new NdjsonToMessageReader(in, new Deserializer())) {
                 try (MessagesToUsageWriter writer = builder.build(out)) {
-                    for (Envelope envelope : envelopes) {
+                    for (Envelope envelope : reader.lines().toList()) {
                         writer.write(envelope);
                     }
                 }

@@ -68,6 +68,12 @@
         </dependency>
 
         <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>messages-ndjson</artifactId>
+            <version>0.4.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <scope>test</scope>

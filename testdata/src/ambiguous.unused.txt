@@ -3,4 +3,4 @@
 
 Location                         Expression            
 samples/ambiguous/ambiguous.ts:3 # ^a (.*?) with (.*?)$
-samples/ambiguous/ambiguous.ts:7 # ^a step with (.*)$  
+samples/ambiguous/ambiguous.ts:7 # ^a step with (.*?)$ 
