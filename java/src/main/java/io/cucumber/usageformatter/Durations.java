@@ -2,6 +2,7 @@ package io.cucumber.usageformatter;
 
 import io.cucumber.messages.Convertor;
 import io.cucumber.usageformatter.UsageReport.Statistics;
+import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -9,11 +10,17 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 final class Durations {
+
+    private Durations() {
+        /* no-op */
+    }
+
+    @Nullable
     static Statistics createStatistics(List<Duration> durations) {
         if (durations.isEmpty()) {
             return null;
         }
-        
+
         Duration sum = durations.stream()
                 .reduce(Duration::plus)
                 // Can't happen
@@ -21,8 +28,8 @@ final class Durations {
         Duration mean = sum.dividedBy(durations.size());
         Duration moe95 = calculateMarginOfError95(durations, mean);
         return new Statistics(
-                Convertor.toMessage(sum), 
-                Convertor.toMessage(mean), 
+                Convertor.toMessage(sum),
+                Convertor.toMessage(mean),
                 Convertor.toMessage(moe95)
         );
     }
@@ -31,7 +38,7 @@ final class Durations {
      * Calculate the margin of error with a 0.95% confidence interval.
      * <p>
      * So assuming a normal distribution, the duration of a step will fall
-     * within {@code mean ± moe95} with 95% probability. 
+     * within {@code mean ± moe95} with 95% probability.
      *
      * @see <a href="https://en.wikipedia.org/wiki/Margin_of_error">Wikipedia - Margin of error</a>
      */

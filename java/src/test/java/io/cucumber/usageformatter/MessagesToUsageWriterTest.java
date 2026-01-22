@@ -3,6 +3,7 @@ package io.cucumber.usageformatter;
 import io.cucumber.messages.types.Envelope;
 import io.cucumber.messages.types.TestRunFinished;
 import io.cucumber.messages.types.TestRunStarted;
+import io.cucumber.messages.types.Timestamp;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -40,7 +41,9 @@ class MessagesToUsageWriterTest {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         MessagesToUsageWriter writer = create(bytes);
         writer.close();
-        assertThrows(IOException.class, () -> writer.write(null));
+        assertThrows(IOException.class, () -> writer.write(
+                Envelope.of(new TestRunStarted(new Timestamp(0L, 0), ""))
+        ));
     }
 
     @Test
@@ -58,7 +61,7 @@ class MessagesToUsageWriterTest {
                 writer.write(message);
             }
         }
-        return new String(bytes.toByteArray(), UTF_8);
+        return bytes.toString(UTF_8);
     }
 
     private static MessagesToUsageWriter create(ByteArrayOutputStream bytes) {
