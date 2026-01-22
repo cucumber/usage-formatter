@@ -22,7 +22,7 @@
       },
       "matches": [ ],
       "expression": {
-        "source": "^a step with (.*)$",
+        "source": "^a step with (.*?)$",
         "type": "REGULAR_EXPRESSION"
       }
     }
