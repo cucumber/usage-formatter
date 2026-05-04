@@ -5,19 +5,18 @@ import { pipeline } from 'node:stream/promises'
 
 import { NdjsonToMessageStream } from '@cucumber/message-streams'
 import type { Envelope } from '@cucumber/messages'
+import { Query } from '@cucumber/query'
 import { expect } from 'chai'
 
-import { UsageBuilder } from './UsageBuilder'
+import { buildUsageReport } from './buildUsageReport'
+import type { UsageReport } from './UsageReport'
 
 const sources = ['ambiguous', 'minimal', 'unused-steps', 'multiple-features']
 
 const testdataDir = path.join(__dirname, '../../testdata/src')
 
-async function buildUsageReport(source: string): Promise<string> {
-  let content = ''
-  const builder = new UsageBuilder((chunk) => {
-    content += chunk
-  })
+async function buildFromNdjson(source: string): Promise<UsageReport> {
+  const query = new Query()
 
   await pipeline(
     fs.createReadStream(path.join(testdataDir, `${source}.ndjson`), { encoding: 'utf-8' }),
@@ -25,27 +24,25 @@ async function buildUsageReport(source: string): Promise<string> {
     new Writable({
       objectMode: true,
       write(envelope: Envelope, _: BufferEncoding, callback) {
-        builder.update(envelope)
+        query.update(envelope)
         callback()
       },
     })
   )
 
-  return content
+  return buildUsageReport(query)
 }
 
-describe('UsageBuilder', function () {
+describe('buildUsageReport', function () {
   this.timeout(10_000)
 
-  describe('json', () => {
-    for (const source of sources) {
-      it(`${source}`, async () => {
-        const content = await buildUsageReport(source)
-        const expected = fs.readFileSync(path.join(testdataDir, `${source}.json`), {
-          encoding: 'utf-8',
-        })
-        expect(content).to.eq(expected)
-      })
-    }
-  })
+  for (const source of sources) {
+    it(`${source}`, async () => {
+      const actual = await buildFromNdjson(source)
+      const expected = JSON.parse(
+        fs.readFileSync(path.join(testdataDir, `${source}.json`), { encoding: 'utf-8' })
+      )
+      expect(actual).to.deep.eq(expected)
+    })
+  }
 })

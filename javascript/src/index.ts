@@ -1,1 +1,2 @@
-export * from './UsageBuilder'
+export * from './buildUsageReport'
+export * from './UsageReport'
