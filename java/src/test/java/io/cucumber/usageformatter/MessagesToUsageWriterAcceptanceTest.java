@@ -1,11 +1,16 @@
 package io.cucumber.usageformatter;
 
 import io.cucumber.messages.NdjsonToMessageReader;
-import io.cucumber.messages.ndjson.Deserializer;
+import io.cucumber.messages.ndjson.Json;
 import io.cucumber.messages.types.Envelope;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import tools.jackson.core.StreamWriteFeature;
+import tools.jackson.core.util.DefaultPrettyPrinter;
+import tools.jackson.core.util.Separators;
+import tools.jackson.databind.cfg.ConstructorDetector;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -20,18 +25,38 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.cucumber.usageformatter.Jackson.OBJECT_MAPPER;
-import static io.cucumber.usageformatter.Jackson.PRETTY_PRINTER;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_ABSENT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
+import static tools.jackson.core.util.DefaultIndenter.SYSTEM_LINEFEED_INSTANCE;
+import static tools.jackson.core.util.Separators.Spacing.AFTER;
 
 class MessagesToUsageWriterAcceptanceTest {
-    private static final MessagesToUsageWriter.Serializer jsonSerializer = OBJECT_MAPPER.writer(PRETTY_PRINTER)::writeValue;
+    private static final NdjsonToMessageReader.Deserializer deserializer = Json.instance()
+            .map(json -> json.deserializer(Envelope.class))
+            .orElseThrow()::readValue;
+
+    private static final MessagesToUsageWriter.Serializer serializer = JsonMapper.builder()
+            .changeDefaultPropertyInclusion(value -> value
+                    .withContentInclusion(NON_ABSENT)
+                    .withValueInclusion(NON_ABSENT)
+            )
+            .constructorDetector(ConstructorDetector.USE_PROPERTIES_BASED)
+            .disable(StreamWriteFeature.AUTO_CLOSE_TARGET)
+            .defaultPrettyPrinter(new DefaultPrettyPrinter(
+                    Separators.createDefaultInstance()
+                            .withObjectNameValueSpacing(AFTER)
+            )
+                    .withArrayIndenter(SYSTEM_LINEFEED_INSTANCE)
+                    .withObjectIndenter(SYSTEM_LINEFEED_INSTANCE)
+            )
+            .build()
+            .writerWithDefaultPrettyPrinter()::writeValue;
 
     static List<TestCase> acceptance() {
         Map<String, MessagesToUsageWriter.Builder> formats = new LinkedHashMap<>();
-        formats.put("json", MessagesToUsageWriter.builder(jsonSerializer));
+        formats.put("json", MessagesToUsageWriter.builder(serializer));
         formats.put("unused.txt", MessagesToUsageWriter.builder(new UnusedReportSerializer()));
         formats.put("step-definitions.txt", MessagesToUsageWriter.builder(UsageReportSerializer.builder().build()));
         formats.put("with-steps.txt", MessagesToUsageWriter.builder(UsageReportSerializer.builder()
@@ -60,7 +85,7 @@ class MessagesToUsageWriterAcceptanceTest {
 
     private static <T extends OutputStream> T writeUsageReport(TestCase testCase, T out, MessagesToUsageWriter.Builder builder) throws IOException {
         try (InputStream in = Files.newInputStream(testCase.source)) {
-            try (NdjsonToMessageReader reader = new NdjsonToMessageReader(in, new Deserializer())) {
+            try (NdjsonToMessageReader reader = new NdjsonToMessageReader(in, deserializer)) {
                 try (MessagesToUsageWriter writer = builder.build(out)) {
                     for (Envelope envelope : reader.lines().toList()) {
                         writer.write(envelope);
