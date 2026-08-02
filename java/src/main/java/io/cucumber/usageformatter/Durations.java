@@ -7,7 +7,9 @@ import org.jspecify.annotations.Nullable;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+
+import static java.math.BigDecimal.ZERO;
+import static java.math.MathContext.DECIMAL64;
 
 final class Durations {
 
@@ -43,17 +45,24 @@ final class Durations {
      * @see <a href="https://en.wikipedia.org/wiki/Margin_of_error">Wikipedia - Margin of error</a>
      */
     private static Duration calculateMarginOfError95(List<Duration> durations, Duration mean) {
-        BigDecimal meanSeconds = toBigDecimalSeconds(mean);
-        BigDecimal variance = durations.stream()
+        var n = BigDecimal.valueOf(durations.size());
+        var meanSeconds = toBigDecimalSeconds(mean);
+        var varianceTimeN = durations.stream()
                 .map(Durations::toBigDecimalSeconds)
                 .map(durationSeconds -> durationSeconds.subtract(meanSeconds).pow(2))
                 .reduce(BigDecimal::add)
-                .orElse(BigDecimal.ZERO);
-        // TODO: With Java 17, use BigDecimal.sqrt and
-        double marginOfError = 2 * Math.sqrt(variance.doubleValue()) / durations.size();
-        // TODO: With Java 17, BigDecimal.divideAndRemainder for seconds and nanos
-        long seconds = (long) Math.floor(marginOfError);
-        long nanos = (long) Math.floor((marginOfError - seconds) * TimeUnit.SECONDS.toNanos(1));
+                //.map(sum -> sum.divide(n, DECIMAL64))
+                .orElse(ZERO);
+        var stdError = varianceTimeN
+                //.divide(n, DECIMAL64)
+                .sqrt(DECIMAL64)
+                // Rearranged to merge the other two divide by n operations.
+                .divide(n, DECIMAL64);
+        var z095 = BigDecimal.valueOf(2);
+        var marginOfError = z095.multiply(stdError).divideAndRemainder(BigDecimal.ONE);
+
+        long seconds = marginOfError[0].longValueExact();
+        long nanos = marginOfError[1].scaleByPowerOfTen(9).longValue();
         return Duration.ofSeconds(seconds, nanos);
     }
 
