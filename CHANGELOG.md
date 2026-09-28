@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.1] - 2026-08-05
 ### Fixed
 - [Java] Use version range for `org.jspecify:jspecify`
+### Changed
+- [Java] Update dependency io.cucumber:messages to permit v34
 
 ## [0.2.0] - 2026-01-22
 ### Changed
