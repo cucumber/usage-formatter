@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>usage-formatter</artifactId>
-    <version>0.3.1-SNAPSHOT</version>
+    <version>0.4.0</version>
     <packaging>jar</packaging>
     <name>Usage Formatter</name>
     <description>Writes usage statistics for step definitions</description>
@@ -18,14 +18,14 @@
 
     <properties>
         <osgi.bundle-symbolic-name>io.cucumber.usageformatter</osgi.bundle-symbolic-name>
-        <project.build.outputTimestamp>1794574870</project.build.outputTimestamp>
+        <project.build.outputTimestamp>1794750240</project.build.outputTimestamp>
     </properties>
 
     <scm>
         <connection>scm:git:https://github.com/cucumber/usage-formatter.git</connection>
         <developerConnection>scm:git:git@github.com:cucumber/usage-formatter.git</developerConnection>
         <url>https://github.com/cucumber/usage-formatter.git</url>
-        <tag>HEAD</tag>
+        <tag>v0.4.0</tag>
     </scm>
 
     <dependencyManagement>
